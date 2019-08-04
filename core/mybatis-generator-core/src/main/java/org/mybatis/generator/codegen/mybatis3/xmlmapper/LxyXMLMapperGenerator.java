@@ -51,6 +51,8 @@ public class LxyXMLMapperGenerator extends AbstractXmlGenerator {
         addResultMapWithBLOBsElement(answer);
         addExampleWhereClauseElement(answer);
         addBaseNimberColumListElement(answer);
+        addBaseBatchUpdateListElement(answer);
+        addBaseBatchInsertListElement(answer);
         addMyBatis3UpdateByExampleWhereClauseElement(answer);
         addBaseColumnListElement(answer);
         addBlobColumnListElement(answer);
@@ -69,12 +71,38 @@ public class LxyXMLMapperGenerator extends AbstractXmlGenerator {
         addUpdateByPrimaryKeyWithBLOBsElement(answer);
         addUpdateByPrimaryKeyWithoutBLOBsElement(answer);
         addNimbleSelectByExampleElement(answer);
+        addBatchInsertElement(answer);
+        addBatchUpdateElement(answer);
         return answer;
+    }
+
+    protected void addBatchInsertElement(XmlElement parentElement) {
+            AbstractXmlElementGenerator elementGenerator = new BatchInsertByExampleGenerator();
+            initializeAndExecuteGenerator(elementGenerator, parentElement);
+    }
+
+    protected void addBatchUpdateElement(XmlElement parentElement) {
+            AbstractXmlElementGenerator elementGenerator = new BatchUpdateByExampleGenerator();
+            initializeAndExecuteGenerator(elementGenerator, parentElement);
     }
 
     protected void addNimbleSelectByExampleElement(XmlElement parentElement) {
         if (introspectedTable.getRules().generateNimbleSelectByExample()) {
             AbstractXmlElementGenerator elementGenerator = new NimbleSelectByExampleGenerator();
+            initializeAndExecuteGenerator(elementGenerator, parentElement);
+        }
+    }
+
+    protected void addBaseBatchUpdateListElement(XmlElement parentElement) {
+        if (introspectedTable.getRules().generateBaseBatchUpdateList()) {
+            AbstractXmlElementGenerator elementGenerator = new BaseBatchUpdateElementGenerator();
+            initializeAndExecuteGenerator(elementGenerator, parentElement);
+        }
+    }
+
+    protected void addBaseBatchInsertListElement(XmlElement parentElement) {
+        if (introspectedTable.getRules().generateBaseBatchInsertList()) {
+            AbstractXmlElementGenerator elementGenerator = new BaseBatchInsertElementGenerator();
             initializeAndExecuteGenerator(elementGenerator, parentElement);
         }
     }

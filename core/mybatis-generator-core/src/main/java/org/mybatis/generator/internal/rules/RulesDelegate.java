@@ -163,6 +163,16 @@ public class RulesDelegate implements Rules {
     public boolean generateNimbleSelectByExample() { return rules.generateNimbleSelectByExample(); }
 
     @Override
+    public boolean generateBaseBatchUpdateList() {
+        return rules.generateBaseBatchUpdateList();
+    }
+
+    @Override
+    public boolean generateBaseBatchInsertList() {
+        return rules.generateBaseBatchInsertList();
+    }
+
+    @Override
     public boolean generateBaseNimbleColumnList() {
         return rules.generateBaseNimbleColumnList();
     }

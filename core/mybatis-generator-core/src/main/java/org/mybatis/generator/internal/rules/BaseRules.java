@@ -73,6 +73,24 @@ public abstract class BaseRules implements Rules {
     }
 
     @Override
+    public boolean generateBaseBatchUpdateList() {
+        if (isModelOnly) {
+            return false;
+        }
+
+        return tableConfiguration.isBaseBatchUpdateListStatementEnabled();
+    }
+
+    @Override
+    public boolean generateBaseBatchInsertList() {
+        if (isModelOnly) {
+            return false;
+        }
+
+        return tableConfiguration.isBaseBatchInsertListStatementEnabled();
+    }
+
+    @Override
     public boolean generateBaseNimbleColumnList() {
         if (isModelOnly) {
             return false;

@@ -108,6 +108,15 @@ public class ExampleGenerator extends AbstractJavaGenerator {
         commentGenerator.addGeneralMethodComment(method, introspectedTable);
         topLevelClass.addMethod(method);
 
+
+        method = new Method("getCriteria"); //$NON-NLS-1$
+        method.setVisibility(JavaVisibility.PUBLIC);
+        method.setReturnType(new FullyQualifiedJavaType("Criteria"));
+        method.addBodyLine("return oredCriteria.get(0);"); //$NON-NLS-1$
+        commentGenerator.addGeneralMethodComment(method, introspectedTable);
+        topLevelClass.addMethod(method);
+
+
         topLevelClass.addImportedType(new FullyQualifiedJavaType("java.util.concurrent.ConcurrentHashMap"));
         topLevelClass.addImportedType(new FullyQualifiedJavaType("java.util.Map"));
 
@@ -608,6 +617,30 @@ public class ExampleGenerator extends AbstractJavaGenerator {
         }
         answer.addMethod(method);
 
+        method = new Method("addCriterionAndRemove"); //$NON-NLS-1$
+        method.setVisibility(JavaVisibility.PROTECTED);
+        method.addParameter(new Parameter(FullyQualifiedJavaType
+                .getStringInstance(), "condition")); //$NON-NLS-1$
+        method.addParameter(new Parameter(FullyQualifiedJavaType
+                .getObjectInstance(), "value")); //$NON-NLS-1$
+        method.addParameter(new Parameter(FullyQualifiedJavaType
+                .getStringInstance(), "property")); //$NON-NLS-1$
+        method.addBodyLine("if (value == null) {"); //$NON-NLS-1$
+        method
+                .addBodyLine("throw new RuntimeException(\"Value for \" + property + \" cannot be null\");"); //$NON-NLS-1$
+        method.addBodyLine("}"); //$NON-NLS-1$
+        method.addBodyLine("for (Criterion criterion : criteria) {"); //$NON-NLS-1$
+        method.addBodyLine("if (criterion.condition.equals(condition)) {"); //$NON-NLS-1$
+        method.addBodyLine("criteria.remove(criterion);"); //$NON-NLS-1$
+        method.addBodyLine("break;"); //$NON-NLS-1$
+        method.addBodyLine("}"); //$NON-NLS-1$
+        method.addBodyLine("}"); //$NON-NLS-1$
+        method.addBodyLine("criteria.add(new Criterion(condition, value));"); //$NON-NLS-1$
+        if (criteriaLists.size() > 1) {
+            method.addBodyLine("allCriteria = null;"); //$NON-NLS-1$
+        }
+        answer.addMethod(method);
+
         method = new Method("addCriterion"); //$NON-NLS-1$
         method.setVisibility(JavaVisibility.PROTECTED);
         method.addParameter(new Parameter(FullyQualifiedJavaType
@@ -784,6 +817,8 @@ public class ExampleGenerator extends AbstractJavaGenerator {
 
             answer.addMethod(getSetInOrNotInMethod(introspectedColumn, true));
             answer.addMethod(getSetInOrNotInMethod(introspectedColumn, false));
+            answer.addMethod(getSetInOrNotInMethodAndRemoveOld(introspectedColumn, true));
+            answer.addMethod(getSetInOrNotInMethodAndRemoveOld(introspectedColumn, false));
             answer.addMethod(getSetBetweenOrNotBetweenMethod(
                     introspectedColumn, true));
             answer.addMethod(getSetBetweenOrNotBetweenMethod(
@@ -952,8 +987,66 @@ public class ExampleGenerator extends AbstractJavaGenerator {
      *            method
      * @return a generated method for the in or not in method
      */
-    private Method getSetInOrNotInMethod(IntrospectedColumn introspectedColumn,
+    private Method getSetInOrNotInMethodAndRemoveOld(IntrospectedColumn introspectedColumn,
             boolean inMethod) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(introspectedColumn.getJavaProperty());
+        sb.setCharAt(0, Character.toUpperCase(sb.charAt(0)));
+        sb.insert(0, "and"); //$NON-NLS-1$
+        if (inMethod) {
+            sb.append("InAndRemoveOld"); //$NON-NLS-1$
+        } else {
+            sb.append("NotInAndRemoveOld"); //$NON-NLS-1$
+        }
+        Method method = new Method(sb.toString());
+        method.setVisibility(JavaVisibility.PUBLIC);
+        FullyQualifiedJavaType type = FullyQualifiedJavaType
+                .getNewListInstance();
+        if (introspectedColumn.getFullyQualifiedJavaType().isPrimitive()) {
+            type.addTypeArgument(introspectedColumn.getFullyQualifiedJavaType()
+                    .getPrimitiveTypeWrapper());
+        } else {
+            type
+                    .addTypeArgument(introspectedColumn
+                            .getFullyQualifiedJavaType());
+        }
+
+        method.addParameter(new Parameter(type, "values")); //$NON-NLS-1$
+        method.setReturnType(FullyQualifiedJavaType.getCriteriaInstance());
+
+        sb.setLength(0);
+        if (introspectedColumn.isJDBCDateColumn()) {
+            sb.append("addCriterionForJDBCDate(\""); //$NON-NLS-1$
+        } else if (introspectedColumn.isJDBCTimeColumn()) {
+            sb.append("addCriterionForJDBCTime(\""); //$NON-NLS-1$
+        } else if (stringHasValue(introspectedColumn
+                .getTypeHandler())) {
+            sb.append("add"); //$NON-NLS-1$
+            sb.append(introspectedColumn.getJavaProperty());
+            sb.setCharAt(3, Character.toUpperCase(sb.charAt(3)));
+            sb.append("Criterion(\""); //$NON-NLS-1$
+        } else {
+            sb.append("addCriterionAndRemove(\""); //$NON-NLS-1$
+        }
+
+        sb.append(MyBatis3FormattingUtilities
+                .getAliasedActualColumnName(introspectedColumn));
+        if (inMethod) {
+            sb.append(" in"); //$NON-NLS-1$
+        } else {
+            sb.append(" not in"); //$NON-NLS-1$
+        }
+        sb.append("\", values, \""); //$NON-NLS-1$
+        sb.append(introspectedColumn.getJavaProperty());
+        sb.append("\");"); //$NON-NLS-1$
+        method.addBodyLine(sb.toString());
+        method.addBodyLine("return (Criteria) this;"); //$NON-NLS-1$
+
+        return method;
+    }
+
+    private Method getSetInOrNotInMethod(IntrospectedColumn introspectedColumn,
+                                         boolean inMethod) {
         StringBuilder sb = new StringBuilder();
         sb.append(introspectedColumn.getJavaProperty());
         sb.setCharAt(0, Character.toUpperCase(sb.charAt(0)));

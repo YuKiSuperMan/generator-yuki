@@ -43,10 +43,11 @@ public  class JavaBizGenerator extends AbstractJavaBizGenerator {
                 introspectedTable.getFullyQualifiedTable().toString()));
         CommentGenerator commentGenerator = context.getCommentGenerator();
         FullyQualifiedJavaType type = new FullyQualifiedJavaType(
-                introspectedTable.getMyBatisBizType()+"<T>");
+                introspectedTable.getMyBatisBizType()+"<T,I>");
         TopLevelClass topLevelClass = new TopLevelClass(type);
         addImport(topLevelClass);
         addNimbleMethod(topLevelClass);
+        addBatchNimbleSelect(topLevelClass);
         FullyQualifiedJavaType mapperType = new FullyQualifiedJavaType(
                 introspectedTable.getMyBatis3JavaMapperType());
         topLevelClass.setVisibility(JavaVisibility.PUBLIC);
@@ -66,17 +67,82 @@ public  class JavaBizGenerator extends AbstractJavaBizGenerator {
 
 
     //添加批量灵活查询方法
-    private void addBatchNimbleSelect () {
-
+    private void addBatchNimbleSelect (TopLevelClass topLevelClass) {
+        FullyQualifiedJavaType exampleType = new FullyQualifiedJavaType(
+                introspectedTable.getExampleType());
+        String exampleShortName= new FullyQualifiedJavaType(
+                introspectedTable.getExampleType()).getShortName();
+        String exampleFieldShortName= handle(exampleShortName);
+        String mapperFieldShortName = handle(new FullyQualifiedJavaType(
+                introspectedTable.getMyBatis3JavaMapperType()).getShortName());
+        String biFunctionType = "BiFunction<" + exampleShortName + ".Criteria,List<I>," +
+                exampleShortName + ".Criteria>";
+        Method method = new Method("batchNimbleSelectByExample");
+        method.setVisibility(JavaVisibility.PUBLIC);
+        method.addParameter(new Parameter(exampleType, "example")); //$NON-NLS-1$
+        method.addParameter(new Parameter(new FullyQualifiedJavaType
+                ("Class<T>"), "clazz")); //$NON-NLS-1$
+        method.addParameter(new Parameter(new FullyQualifiedJavaType
+                (biFunctionType), "function")); //$NON-NLS-1$
+        method.addParameter(new Parameter(new FullyQualifiedJavaType
+                ("List<I>"), "list")); //$NON-NLS-1$
+        method.addParameter(new Parameter(new FullyQualifiedJavaType
+                ("int"), "batchSize")); //$NON-NLS-1$
+        method.setReturnType(new FullyQualifiedJavaType("List<T>"));
+        method.addBodyLine("List<I> queryList = new ArrayList<>();");
+        method.addBodyLine("List<T> resList = new ArrayList<>();");
+        method.addBodyLine("int flag = 0;");
+        method.addBodyLine("for (I i : list) {");
+        method.addBodyLine("queryList.add(i);");
+        method.addBodyLine("flag++;");
+        method.addBodyLine("if (flag == batchSize) {");
+        method.addBodyLine("function.apply(example.getCriteria(),queryList);");
+        method.addBodyLine("resList.addAll(nimbleSelectByExample(example,clazz));");
+        method.addBodyLine("flag = 0;");
+        method.addBodyLine("}");
+        method.addBodyLine("}");
+        method.addBodyLine("if (!queryList.isEmpty()) {");
+        method.addBodyLine("function.apply(example.getCriteria(),queryList);");
+        method.addBodyLine("resList.addAll(nimbleSelectByExample(example,clazz));");
+        method.addBodyLine("}");
+        method.addBodyLine("return resList;");
+        topLevelClass.addMethod(method);
     }
 
-    //添加批量更新风法
-    private void addBatchUpdate () {
-
+    //添加批量更新方法
+    private void addBatchUpdate (TopLevelClass topLevelClass) {
+        FullyQualifiedJavaType exampleType = new FullyQualifiedJavaType(
+                introspectedTable.getExampleType());
+        String exampleShortName= new FullyQualifiedJavaType(
+                introspectedTable.getExampleType()).getShortName();
+        String exampleFieldShortName= handle(exampleShortName);
+        String mapperFieldShortName = handle(new FullyQualifiedJavaType(
+                introspectedTable.getMyBatis3JavaMapperType()).getShortName());
+        Method method = new Method("batchUpdate");
+        method.setVisibility(JavaVisibility.PUBLIC);
+        method.addParameter(new Parameter(exampleType, "example")); //$NON-NLS-1$
+        method.addParameter(new Parameter(new FullyQualifiedJavaType
+                ("Class<T>"), "clazz")); //$NON-NLS-1$
+        method.setReturnType(new FullyQualifiedJavaType("List<T>"));
+        topLevelClass.addMethod(method);
     }
 
-    private void addBatchInsert () {
-
+    //添加批量新增方法
+    private void addBatchInsert (TopLevelClass topLevelClass) {
+        FullyQualifiedJavaType exampleType = new FullyQualifiedJavaType(
+                introspectedTable.getExampleType());
+        String exampleShortName= new FullyQualifiedJavaType(
+                introspectedTable.getExampleType()).getShortName();
+        String exampleFieldShortName= handle(exampleShortName);
+        String mapperFieldShortName = handle(new FullyQualifiedJavaType(
+                introspectedTable.getMyBatis3JavaMapperType()).getShortName());
+        Method method = new Method("batchInsert");
+        method.setVisibility(JavaVisibility.PUBLIC);
+        method.addParameter(new Parameter(new FullyQualifiedJavaType("List"), "list")); //$NON-NLS-1$
+        method.addParameter(new Parameter(new FullyQualifiedJavaType
+                ("Class<T>"), "clazz")); //$NON-NLS-1$
+        method.setReturnType(new FullyQualifiedJavaType("List<T>"));
+        topLevelClass.addMethod(method);
     }
 
     private void addNimbleMethod (TopLevelClass topLevelClass) {
@@ -133,6 +199,7 @@ public  class JavaBizGenerator extends AbstractJavaBizGenerator {
         topLevelClass.addImportedType("java.lang.reflect.Field");
         topLevelClass.addImportedType("org.springframework.beans.factory.annotation.Autowired");
         topLevelClass.addImportedType("org.springframework.stereotype.Service");
+        topLevelClass.addImportedType("java.util.function.BiFunction");
     }
 
     public static String handle(String s) {

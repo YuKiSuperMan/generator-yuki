@@ -50,6 +50,26 @@ public class TableConfiguration extends PropertyHolder {
 
     private boolean baseNimbleColumnListStatementEnabled;
 
+    private boolean baseBatchUpdateListStatementEnabled;
+
+    private boolean baseBatchInsertListStatementEnabled;
+
+    public boolean isBaseBatchUpdateListStatementEnabled() {
+        return baseBatchUpdateListStatementEnabled;
+    }
+
+    public void setBaseBatchUpdateListStatementEnabled(boolean baseBatchUpdateListStatementEnabled) {
+        this.baseBatchUpdateListStatementEnabled = baseBatchUpdateListStatementEnabled;
+    }
+
+    public boolean isBaseBatchInsertListStatementEnabled() {
+        return baseBatchInsertListStatementEnabled;
+    }
+
+    public void setBaseBatchInsertListStatementEnabled(boolean baseBatchInsertListStatementEnabled) {
+        this.baseBatchInsertListStatementEnabled = baseBatchInsertListStatementEnabled;
+    }
+
     public boolean isBaseNimbleColumnListStatementEnabled() {
         return baseNimbleColumnListStatementEnabled;
     }
@@ -121,6 +141,8 @@ public class TableConfiguration extends PropertyHolder {
         updateByExampleStatementEnabled = true;
         baseNimbleColumnListStatementEnabled = true;
         nimbleSelectByExampleStatementEnabled = true;
+        baseBatchUpdateListStatementEnabled = true;
+        baseBatchInsertListStatementEnabled = true;
     }
 
     public boolean isDeleteByPrimaryKeyStatementEnabled() {

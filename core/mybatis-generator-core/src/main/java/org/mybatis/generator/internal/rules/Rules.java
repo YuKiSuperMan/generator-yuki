@@ -208,6 +208,10 @@ public interface Rules {
 
     boolean generateNimbleSelectByExample();
 
+    boolean generateBaseBatchUpdateList();
+
+    boolean generateBaseBatchInsertList();
+
     boolean generateBaseNimbleColumnList();
 
     /**

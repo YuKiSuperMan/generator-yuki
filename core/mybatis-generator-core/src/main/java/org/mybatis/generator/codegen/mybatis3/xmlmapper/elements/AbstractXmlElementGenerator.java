@@ -69,6 +69,20 @@ public abstract class AbstractXmlElementGenerator extends AbstractGenerator {
         return answer;
     }
 
+    protected XmlElement getBaseBatchInsertElement() {
+        XmlElement answer = new XmlElement("include"); //$NON-NLS-1$
+        answer.addAttribute(new Attribute("refid", //$NON-NLS-1$
+                introspectedTable.getBaseBatchInsertListId()));
+        return answer;
+    }
+
+    protected XmlElement getBaseBatchUpdateElement() {
+        XmlElement answer = new XmlElement("include"); //$NON-NLS-1$
+        answer.addAttribute(new Attribute("refid", //$NON-NLS-1$
+                introspectedTable.getBaseBatchUpdateListId()));
+        return answer;
+    }
+
     protected XmlElement getBlobColumnListElement() {
         XmlElement answer = new XmlElement("include"); //$NON-NLS-1$
         answer.addAttribute(new Attribute("refid", //$NON-NLS-1$

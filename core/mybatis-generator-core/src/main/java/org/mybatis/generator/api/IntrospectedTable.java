@@ -92,6 +92,8 @@ public abstract class IntrospectedTable {
         ATTR_BASE_COLUMN_LIST_ID,
         //@author longxiangyu 灵活sql
         ATTR_BASE_NIMBLE_COLUMN_ID,
+        ATTR_BASE_BATCH_UPDATE_ID,
+        ATTR_BASE_BATCH_INSERT_ID,
         ATTR_NIMBLE_SELECT_BY_EXAMPLE_ID,
         ATTR_BLOB_COLUMN_LIST_ID,
         ATTR_MYBATIS3_UPDATE_BY_EXAMPLE_WHERE_CLAUSE_ID,
@@ -519,6 +521,8 @@ public abstract class IntrospectedTable {
         setMyBatis3UpdateByExampleWhereClauseId("Update_By_Example_Where_Clause"); //$NON-NLS-1$
         setBaseNimberListId("Base_Nimble_Column_list");
         setNimbleSelectByExampleId("nimbleSelectByExample");
+        setBaseBatchInsertListId("Base_Batch_Insert_List");
+        setBaseBatchUpdateListId("Base_Batch_Update_List");
     }
 
     public void setBlobColumnListId(String s) {
@@ -543,6 +547,22 @@ public abstract class IntrospectedTable {
 
     public void setNimbleSelectByExampleId(String s){
         internalAttributes.put(InternalAttribute.ATTR_NIMBLE_SELECT_BY_EXAMPLE_ID,s);
+    }
+
+    public void setBaseBatchInsertListId (String s) {
+        internalAttributes.put(InternalAttribute.ATTR_BASE_BATCH_INSERT_ID,s);
+    }
+
+    public String getBaseBatchInsertListId () {
+        return internalAttributes.get(InternalAttribute.ATTR_BASE_BATCH_INSERT_ID);
+    }
+
+    public void setBaseBatchUpdateListId (String s) {
+        internalAttributes.put(InternalAttribute.ATTR_BASE_BATCH_UPDATE_ID,s);
+    }
+
+    public String getBaseBatchUpdateListId () {
+        return internalAttributes.get(InternalAttribute.ATTR_BASE_BATCH_UPDATE_ID);
     }
 
     public void setExampleWhereClauseId(String s) {

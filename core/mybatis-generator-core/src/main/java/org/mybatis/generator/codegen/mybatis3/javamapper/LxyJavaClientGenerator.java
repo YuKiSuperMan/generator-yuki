@@ -87,7 +87,8 @@ public class LxyJavaClientGenerator  extends AbstractJavaClientGenerator {
         addUpdateByPrimaryKeyWithBLOBsMethod(interfaze);
         addUpdateByPrimaryKeyWithoutBLOBsMethod(interfaze);
         addNimbleSelectByExampleMethod(interfaze);
-
+        addBatchInsertByExampleMethodGenerator(interfaze);
+        addBatchUpdateByExampleMethodGenerator(interfaze);
         List<CompilationUnit> answer = new ArrayList<>();
         if (context.getPlugins().clientGenerated(interfaze, introspectedTable)) {
             answer.add(interfaze);
@@ -107,6 +108,18 @@ public class LxyJavaClientGenerator  extends AbstractJavaClientGenerator {
             initializeAndExecuteGenerator(methodGenerator, interfaze);
         }
     }
+
+    protected void addBatchInsertByExampleMethodGenerator(Interface interfaze) {
+            AbstractJavaMapperMethodGenerator methodGenerator = new BatchInsertByExampleMethodGenerator();
+            initializeAndExecuteGenerator(methodGenerator, interfaze);
+    }
+
+
+    protected void addBatchUpdateByExampleMethodGenerator(Interface interfaze) {
+            AbstractJavaMapperMethodGenerator methodGenerator = new BatchUpdateByExampleMethodGenerator();
+            initializeAndExecuteGenerator(methodGenerator, interfaze);
+    }
+
 
     protected void addCountByExampleMethod(Interface interfaze) {
         if (introspectedTable.getRules().generateCountByExample()) {
