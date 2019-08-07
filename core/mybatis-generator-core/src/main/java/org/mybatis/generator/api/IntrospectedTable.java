@@ -66,6 +66,7 @@ public abstract class IntrospectedTable {
         ATTR_MYBATIS3_XML_MAPPER_FILE_NAME,
         /** also used as XML Mapper namespace if a Java mapper is generated. */
         ATTR_MYBATIS3_JAVA_MAPPER_TYPE,
+        ATTR_MYBATIS3_JAVA_NIMBLE_MAPPER_TYPE,
         ATTR_BIZ_TYPE,
         /** used as XML Mapper namespace if no client is generated. */
         ATTR_MYBATIS3_FALLBACK_SQL_MAP_NAMESPACE,
@@ -397,7 +398,10 @@ public abstract class IntrospectedTable {
         return namespace;
     }
 
-
+    public String getMyBatis3SqlNimbleMapNamespace() {
+        String namespace = getMyBatis3JavaNimbleMapperType();
+        return namespace;
+    }
 
     public String getMyBatis3FallbackSqlMapNamespace() {
         return internalAttributes
@@ -489,8 +493,62 @@ public abstract class IntrospectedTable {
         context.getPlugins().initialized(this);
     }
 
+    public void initialize(boolean can) {
+        calculateJavaClientAttributes();
+        calculateModelAttributes();
+        calculateYuKiXmlAttributes();
+        calculateBaseAttributes();
+        calculateJavaBizAttributes();
+        if (tableConfiguration.getModelType() == ModelType.HIERARCHICAL) {
+            rules = new HierarchicalModelRules(this);
+        } else if (tableConfiguration.getModelType() == ModelType.FLAT) {
+            rules = new FlatModelRules(this);
+        } else {
+            rules = new ConditionalModelRules(this);
+        }
+
+        context.getPlugins().initialized(this);
+    }
+
+
     protected void calculateXmlAttributes() {
         setMyBatis3XmlMapperFileName(calculateMyBatis3XmlMapperFileName());
+        setMyBatis3XmlMapperPackage(calculateSqlMapPackage());
+
+        setMyBatis3FallbackSqlMapNamespace(calculateMyBatis3FallbackSqlMapNamespace());
+
+        setSqlMapFullyQualifiedRuntimeTableName(calculateSqlMapFullyQualifiedRuntimeTableName());
+        setSqlMapAliasedFullyQualifiedRuntimeTableName(calculateSqlMapAliasedFullyQualifiedRuntimeTableName());
+
+        setCountByExampleStatementId("countByExample"); //$NON-NLS-1$
+        setDeleteByExampleStatementId("deleteByExample"); //$NON-NLS-1$
+        setDeleteByPrimaryKeyStatementId("deleteByPrimaryKey"); //$NON-NLS-1$
+        setInsertStatementId("insert"); //$NON-NLS-1$
+        setInsertSelectiveStatementId("insertSelective"); //$NON-NLS-1$
+        setSelectAllStatementId("selectAll"); //$NON-NLS-1$
+        setSelectByExampleStatementId("selectByExample"); //$NON-NLS-1$
+        setSelectByExampleWithBLOBsStatementId("selectByExampleWithBLOBs"); //$NON-NLS-1$
+        setSelectByPrimaryKeyStatementId("selectByPrimaryKey"); //$NON-NLS-1$
+        setUpdateByExampleStatementId("updateByExample"); //$NON-NLS-1$
+        setUpdateByExampleSelectiveStatementId("updateByExampleSelective"); //$NON-NLS-1$
+        setUpdateByExampleWithBLOBsStatementId("updateByExampleWithBLOBs"); //$NON-NLS-1$
+        setUpdateByPrimaryKeyStatementId("updateByPrimaryKey"); //$NON-NLS-1$
+        setUpdateByPrimaryKeySelectiveStatementId("updateByPrimaryKeySelective"); //$NON-NLS-1$
+        setUpdateByPrimaryKeyWithBLOBsStatementId("updateByPrimaryKeyWithBLOBs"); //$NON-NLS-1$
+        setBaseResultMapId("BaseResultMap"); //$NON-NLS-1$
+        setResultMapWithBLOBsId("ResultMapWithBLOBs"); //$NON-NLS-1$
+        setExampleWhereClauseId("Example_Where_Clause"); //$NON-NLS-1$
+        setBaseColumnListId("Base_Column_List"); //$NON-NLS-1$
+        setBlobColumnListId("Blob_Column_List"); //$NON-NLS-1$
+        setMyBatis3UpdateByExampleWhereClauseId("Update_By_Example_Where_Clause"); //$NON-NLS-1$
+        setBaseNimberListId("Base_Nimble_Column_list");
+        setNimbleSelectByExampleId("nimbleSelectByExample");
+        setBaseBatchInsertListId("Base_Batch_Insert_List");
+        setBaseBatchUpdateListId("Base_Batch_Update_List");
+    }
+
+    protected void calculateYuKiXmlAttributes() {
+        setMyBatis3XmlMapperFileName(calculateNimbleMyBatis3XmlMapperFileName());
         setMyBatis3XmlMapperPackage(calculateSqlMapPackage());
 
         setMyBatis3FallbackSqlMapNamespace(calculateMyBatis3FallbackSqlMapNamespace());
@@ -820,20 +878,23 @@ public abstract class IntrospectedTable {
         }
 
         StringBuilder sb = new StringBuilder();
+        String c = "";
         sb.append(calculateJavaClientInterfacePackage());
         sb.append('.');
         if (stringHasValue(tableConfiguration.getMapperName())) {
             sb.append(tableConfiguration.getMapperName());
+            c = sb.toString();
         } else {
             if (stringHasValue(fullyQualifiedTable.getDomainObjectSubPackage())) {
                 sb.append(fullyQualifiedTable.getDomainObjectSubPackage());
                 sb.append('.');
             }
             sb.append(fullyQualifiedTable.getDomainObjectName());
+            c = sb.toString();
             sb.append("Mapper"); //$NON-NLS-1$
         }
         setMyBatis3JavaMapperType(sb.toString());
-
+        setMyBatis3JavaNimbleMapperType(c + "NimbleMapper");
         sb.setLength(0);
         sb.append(calculateJavaClientInterfacePackage());
         sb.append('.');
@@ -950,6 +1011,8 @@ public abstract class IntrospectedTable {
         return sb.toString();
     }
 
+
+
     protected String calculateJavaBizPackage() {
         JavaBizGeneratorConfiguration config = context
                 .getJavaBizGeneratorConfiguration();
@@ -982,6 +1045,25 @@ public abstract class IntrospectedTable {
         setMyBatisBizType(sb.toString());
     }
 
+    public String getAnnotateTableColumnPackage () {
+        return context.getJavaAnnotateTableColumnConfiguration().getTargetPackage();
+    }
+
+    public static String getAlonePackage (Context context) {
+        return context.getJavaAnnotateTableColumnConfiguration().getTargetPackage();
+    }
+
+    public static String getAloneName (Context context) {
+        return context.getJavaAnnotateTableColumnConfiguration().getName();
+    }
+
+    public static String getAlonePointPackage(Context context) {
+        return context.getJavaAnnotateTableColumnConfiguration().getPointPackage();
+    }
+
+    public String getAnnotateTableColumnName () {
+        return context.getJavaAnnotateTableColumnConfiguration().getName();
+    }
 
     public void setMyBatisBizType(String sb) {
         internalAttributes.put(InternalAttribute.ATTR_BIZ_TYPE,sb);
@@ -1028,6 +1110,24 @@ public abstract class IntrospectedTable {
         } else {
             sb.append(fullyQualifiedTable.getDomainObjectName());
             sb.append("Mapper.xml"); //$NON-NLS-1$
+        }
+        return sb.toString();
+    }
+
+    protected String calculateNimbleMyBatis3XmlMapperFileName() {
+        StringBuilder sb = new StringBuilder();
+        if (stringHasValue(tableConfiguration.getMapperName())) {
+            String mapperName = tableConfiguration.getMapperName();
+            int ind = mapperName.lastIndexOf('.');
+            if (ind == -1) {
+                sb.append(mapperName);
+            } else {
+                sb.append(mapperName.substring(ind + 1));
+            }
+            sb.append(".xml"); //$NON-NLS-1$
+        } else {
+            sb.append(fullyQualifiedTable.getDomainObjectName());
+            sb.append("NimbleMapper.xml"); //$NON-NLS-1$
         }
         return sb.toString();
     }
@@ -1189,10 +1289,21 @@ public abstract class IntrospectedTable {
                 .get(InternalAttribute.ATTR_MYBATIS3_JAVA_MAPPER_TYPE);
     }
 
+    public String getMyBatis3JavaNimbleMapperType() {
+        return internalAttributes
+                .get(InternalAttribute.ATTR_MYBATIS3_JAVA_NIMBLE_MAPPER_TYPE);
+    }
+
     public void setMyBatis3JavaMapperType(String mybatis3JavaMapperType) {
         internalAttributes.put(
                 InternalAttribute.ATTR_MYBATIS3_JAVA_MAPPER_TYPE,
                 mybatis3JavaMapperType);
+    }
+
+    public void setMyBatis3JavaNimbleMapperType (String s) {
+        internalAttributes.put(
+                InternalAttribute.ATTR_MYBATIS3_JAVA_NIMBLE_MAPPER_TYPE,
+                s);
     }
 
     public String getMyBatis3SqlProviderType() {

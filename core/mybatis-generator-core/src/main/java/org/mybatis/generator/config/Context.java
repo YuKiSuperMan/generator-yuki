@@ -61,6 +61,8 @@ public class Context extends PropertyHolder {
 
     private JavaClientGeneratorConfiguration javaClientGeneratorConfiguration;
 
+    private JavaAnnotateTableColumnConfiguration javaAnnotateTableColumnConfiguration;
+
     private JavaBizGeneratorConfiguration javaBizGeneratorConfiguration;
 
     private ArrayList<TableConfiguration> tableConfigurations;
@@ -220,6 +222,14 @@ public class Context extends PropertyHolder {
 
     public void setJavaBizGeneratorConfiguration(JavaBizGeneratorConfiguration javaBizGeneratorConfiguration) {
         this.javaBizGeneratorConfiguration = javaBizGeneratorConfiguration;
+    }
+
+    public JavaAnnotateTableColumnConfiguration getJavaAnnotateTableColumnConfiguration() {
+        return javaAnnotateTableColumnConfiguration;
+    }
+
+    public void setJavaAnnotateTableColumnConfiguration(JavaAnnotateTableColumnConfiguration javaAnnotateTableColumnConfiguration) {
+        this.javaAnnotateTableColumnConfiguration = javaAnnotateTableColumnConfiguration;
     }
 
     public void setJavaModelGeneratorConfiguration(
@@ -462,8 +472,16 @@ public class Context extends PropertyHolder {
 
             for (IntrospectedTable introspectedTable : introspectedTables) {
                 callback.checkCancel();
-
-                introspectedTable.initialize();
+                if (javaClientGeneratorConfiguration != null) {
+                    String type = javaClientGeneratorConfiguration.getConfigurationType();
+                    if (type != null && "YUKIMAPPER".equalsIgnoreCase(type)) {
+                        introspectedTable.initialize(true);
+                    } else {
+                        introspectedTable.initialize();
+                    }
+                } else {
+                    introspectedTable.initialize();
+                }
                 introspectedTable.calculateGenerators(warnings, callback);
                 generatedJavaFiles.addAll(introspectedTable
                         .getGeneratedJavaFiles());
@@ -481,6 +499,13 @@ public class Context extends PropertyHolder {
         generatedXmlFiles.addAll(pluginAggregator
                 .contextGenerateAdditionalXmlFiles());
     }
+
+
+    public void aloneGenerateFiles(ProgressCallback callback,
+                              List<GeneratedJavaFile> generatedJavaFiles, List<String> warnings) {
+        generatedJavaFiles.addAll(IntrospectedTableMyBatis3Impl.calculateAloneGenerators(warnings,callback,this));
+    }
+
 
     private Connection getConnection() throws SQLException {
         ConnectionFactory connectionFactory;

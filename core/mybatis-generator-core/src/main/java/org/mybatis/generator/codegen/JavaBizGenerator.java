@@ -98,6 +98,7 @@ public  class JavaBizGenerator extends AbstractJavaBizGenerator {
         method.addBodyLine("if (flag == batchSize) {");
         method.addBodyLine("function.apply(example.getCriteria(),queryList);");
         method.addBodyLine("resList.addAll(nimbleSelectByExample(example,clazz));");
+        method.addBodyLine("queryList.clear();");
         method.addBodyLine("flag = 0;");
         method.addBodyLine("}");
         method.addBodyLine("}");

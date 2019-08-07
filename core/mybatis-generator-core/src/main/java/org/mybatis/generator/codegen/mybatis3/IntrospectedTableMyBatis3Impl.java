@@ -29,8 +29,11 @@ import org.mybatis.generator.codegen.mybatis3.javamapper.AnnotatedClientGenerato
 import org.mybatis.generator.codegen.mybatis3.javamapper.JavaMapperGenerator;
 import org.mybatis.generator.codegen.mybatis3.javamapper.LxyJavaClientGenerator;
 import org.mybatis.generator.codegen.mybatis3.javamapper.MixedClientGenerator;
+import org.mybatis.generator.codegen.mybatis3.javamapper.elements.YukiJavaNimbleClientGenerator;
+import org.mybatis.generator.codegen.mybatis3.javamapper.elements.YukiJavaSimpleClientGenerator;
 import org.mybatis.generator.codegen.mybatis3.model.*;
 import org.mybatis.generator.codegen.mybatis3.xmlmapper.XMLMapperGenerator;
+import org.mybatis.generator.config.Context;
 import org.mybatis.generator.config.PropertyRegistry;
 import org.mybatis.generator.internal.ObjectFactory;
 import org.mybatis.generator.internal.util.StringUtility;
@@ -64,6 +67,8 @@ public class IntrospectedTableMyBatis3Impl extends IntrospectedTable {
 
         calculateXmlMapperGenerator(javaClientGenerator, warnings, progressCallback);
     }
+
+
 
     protected void calculateXmlMapperGenerator(AbstractJavaClientGenerator javaClientGenerator, 
             List<String> warnings,
@@ -123,9 +128,13 @@ public class IntrospectedTableMyBatis3Impl extends IntrospectedTable {
             javaGenerator = new AnnotatedClientGenerator(getClientProject());
         } else if ("MAPPER".equalsIgnoreCase(type)) { //$NON-NLS-1$
             javaGenerator = new JavaMapperGenerator(getClientProject());
-        } else if("LXYMAPPER".equalsIgnoreCase(type)) {
+        } else if ("LXYMAPPER".equalsIgnoreCase(type)) {
             //此处加入LxyJavaClientGenerator
             javaGenerator = new LxyJavaClientGenerator(getClientProject());
+        } else if ("YUKIMAPPER".equalsIgnoreCase(type)) {
+            javaGenerator = new YukiJavaNimbleClientGenerator(getClientProject());
+        } else if ("YUKISIMPLEMAPPER".equalsIgnoreCase(type)){
+            javaGenerator = new YukiJavaSimpleClientGenerator(getClientProject());
         } else {
             javaGenerator = (AbstractJavaClientGenerator) ObjectFactory
                     .createInternalObject(type);
@@ -142,17 +151,23 @@ public class IntrospectedTableMyBatis3Impl extends IntrospectedTable {
             ProgressCallback progressCallback) {
         this.warnings = warnings;
         this.progressCallback = progressCallback;
+        String type = "";
         if (getRules().generateExampleClass()) {
-//            if(isStart()) {
-//                AbstractJavaGenerator javaGenerator = new BaseExampleGenerator(getExampleProject());
-//                initializeAbstractGenerator(javaGenerator, warnings,
-//                        progressCallback);
-//                javaGenerators.add(javaGenerator);
-//            }
-            AbstractJavaGenerator javaGenerator = new ExampleGenerator(getExampleProject());
-            initializeAbstractGenerator(javaGenerator, warnings,
-                    progressCallback);
-            javaGenerators.add(javaGenerator);
+            if (context.getJavaClientGeneratorConfiguration() != null) {
+                type = context.getJavaClientGeneratorConfiguration()
+                        .getConfigurationType();
+            }
+            if ("YUKIMAPPER".equalsIgnoreCase(type)) {
+                AbstractJavaGenerator javaGenerator = new YuKiExampleGenerator(getExampleProject());
+                initializeAbstractGenerator(javaGenerator, warnings,
+                        progressCallback);
+                javaGenerators.add(javaGenerator);
+            } else {
+                AbstractJavaGenerator javaGenerator = new ExampleGenerator(getExampleProject());
+                initializeAbstractGenerator(javaGenerator, warnings,
+                        progressCallback);
+                javaGenerators.add(javaGenerator);
+            }
         }
 
         if (getRules().generatePrimaryKeyClass()) {
@@ -175,6 +190,74 @@ public class IntrospectedTableMyBatis3Impl extends IntrospectedTable {
                     progressCallback);
             javaGenerators.add(javaGenerator);
         }
+    }
+
+    /**
+     *
+     * @param warnings
+     * @param progressCallback
+     */
+    public static List<GeneratedJavaFile> calculateAloneGenerators(List<String> warnings,
+                                                                   ProgressCallback progressCallback, Context context) {
+
+        List<GeneratedJavaFile> answer = new ArrayList<>();
+
+        List<AbstractJavaGenerator> javaGenerators = new ArrayList<>();
+        String type = "";
+        if (context.getJavaClientGeneratorConfiguration() != null) {
+            type = context.getJavaClientGeneratorConfiguration()
+                    .getConfigurationType();
+        }
+        if ("YUKIMAPPER".equalsIgnoreCase(type)) {
+            AbstractJavaGenerator threadMapperHolderGenerator = new ThreadMapperHolderGenerator(getAloneClassProject(context));
+            initializeAbstractGenerator(threadMapperHolderGenerator, warnings,
+                    progressCallback,context);
+            javaGenerators.add(threadMapperHolderGenerator);
+
+            AbstractJavaGenerator tableColumnGenerator = new TableColumnGenerator(getAloneClassProject(context));
+            initializeAbstractGenerator(tableColumnGenerator, warnings,
+                    progressCallback,context);
+            javaGenerators.add(tableColumnGenerator);
+
+            AbstractJavaGenerator mapperValueGenerator = new MapperValueGenerator(getAloneClassProject(context));
+            initializeAbstractGenerator(mapperValueGenerator, warnings,
+                    progressCallback,context);
+            javaGenerators.add(mapperValueGenerator);
+
+            AbstractJavaGenerator mapperHandleGenerator = new MapperHandleGenerator(getAloneClassProject(context));
+            initializeAbstractGenerator(mapperHandleGenerator, warnings,
+                    progressCallback,context);
+            javaGenerators.add(mapperHandleGenerator);
+
+            AbstractJavaGenerator mapperFilterGenerator = new MapperFilterGenerator(getAloneClassProject(context));
+            initializeAbstractGenerator(mapperFilterGenerator, warnings,
+                    progressCallback,context);
+            javaGenerators.add(mapperFilterGenerator);
+        }
+        for (AbstractJavaGenerator javaGenerator : javaGenerators) {
+            List<CompilationUnit> compilationUnits = javaGenerator
+                    .getCompilationUnits();
+            for (CompilationUnit compilationUnit : compilationUnits) {
+                GeneratedJavaFile gjf = new GeneratedJavaFile(compilationUnit,
+                        javaGenerator.getProject(),
+                        context.getProperty(PropertyRegistry.CONTEXT_JAVA_FILE_ENCODING),
+                        context.getJavaFormatter());
+                answer.add(gjf);
+            }
+        }
+        return answer;
+    }
+
+    protected static void initializeAbstractGenerator(
+            AbstractGenerator abstractGenerator, List<String> warnings,
+            ProgressCallback progressCallback,Context context) {
+        if (abstractGenerator == null) {
+            return;
+        }
+
+        abstractGenerator.setContext(context);
+        abstractGenerator.setProgressCallback(progressCallback);
+        abstractGenerator.setWarnings(warnings);
     }
 
     protected void initializeAbstractGenerator(
@@ -229,6 +312,11 @@ public class IntrospectedTableMyBatis3Impl extends IntrospectedTable {
         } else {
             return getModelProject();
         }
+    }
+
+    protected static String getAloneClassProject (Context context) {
+        String project = context.getJavaAnnotateTableColumnConfiguration().getTargetProject();
+        return project;
     }
     
     @Override

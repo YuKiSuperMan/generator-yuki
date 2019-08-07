@@ -160,6 +160,10 @@
       <property name="enableSubPackages" value="true" />
     </sqlMapGenerator>
 
+    <javaAnnotateTableColumn name="InventoryTest" pointPackage="" targetPackage="mbg.test.mb3.generated.conditional.model"  targetProject="MAVEN" >
+      <property name="enableSubPackages" value="false"/>
+    </javaAnnotateTableColumn>
+
     <!-- !!!! Mapper Interface Configurations !!!! -->
     <javaBizGenerator targetPackage="mbg.test.mb3.generated.flat.biz" targetProject="src/main/java" >
       <property name="enableSubPackages" value="false"/>

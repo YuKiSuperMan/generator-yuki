@@ -64,6 +64,8 @@ public class MyBatisGenerator {
     /** The generated java files. */
     private List<GeneratedJavaFile> generatedJavaFiles;
 
+    private List<GeneratedJavaFile> aloneGeneratedJavaFiles;
+
     /** The generated xml files. */
     private List<GeneratedXmlFile> generatedXmlFiles;
 
@@ -114,6 +116,7 @@ public class MyBatisGenerator {
         }
         generatedJavaFiles = new ArrayList<>();
         generatedXmlFiles = new ArrayList<>();
+        aloneGeneratedJavaFiles = new ArrayList<>();
         projects = new HashSet<>();
 
         this.configuration.validate();
@@ -224,6 +227,7 @@ public class MyBatisGenerator {
 
         generatedJavaFiles.clear();
         generatedXmlFiles.clear();
+        aloneGeneratedJavaFiles.clear();
         ObjectFactory.reset();
         RootClassInfo.reset();
 
@@ -268,6 +272,7 @@ public class MyBatisGenerator {
         for (Context context : contextsToRun) {
             context.generateFiles(callback, generatedJavaFiles,
                     generatedXmlFiles, warnings);
+            context.aloneGenerateFiles(callback,aloneGeneratedJavaFiles,warnings);
         }
 
         // now save the files
@@ -278,6 +283,11 @@ public class MyBatisGenerator {
             for (GeneratedXmlFile gxf : generatedXmlFiles) {
                 projects.add(gxf.getTargetProject());
                 writeGeneratedXmlFile(gxf, callback);
+            }
+
+            for (GeneratedJavaFile generatedJavaFile : aloneGeneratedJavaFiles) {
+                projects.add(generatedJavaFile.getTargetProject());
+                writeGeneratedJavaFile(generatedJavaFile, callback);
             }
 
             for (GeneratedJavaFile gjf : generatedJavaFiles) {
@@ -321,7 +331,7 @@ public class MyBatisGenerator {
             } else {
                 source = gjf.getFormattedContent();
             }
-
+//org.mybatis.generator.exception.ShellException: The specified target project directory mbg.test.mb3.generated.conditional.mapper does not exist
             callback.checkCancel();
             callback.startTask(getString(
                     "Progress.15", targetFile.getName())); //$NON-NLS-1$

@@ -187,6 +187,8 @@ public class MyBatisGeneratorConfigurationParser {
                 parseJavaClientGenerator(context, childNode);
             } else if ("javaBizGenerator".equals(childNode.getNodeName())) {
                 parseJavaBizGenerator(context, childNode);
+            } else if ("javaAnnotateTableColumn".equals(childNode.getNodeName())) {
+                parseJavaAnnotateTableColumn(context, childNode);
             } else if ("table".equals(childNode.getNodeName())) { //$NON-NLS-1$
                 parseTable(context, childNode);
             }
@@ -660,6 +662,37 @@ public class MyBatisGeneratorConfigurationParser {
 
             if ("property".equals(childNode.getNodeName())) { //$NON-NLS-1$
                 parseProperty(javaBizGeneratorConfiguration, childNode);
+            }
+        }
+    }
+
+    protected void parseJavaAnnotateTableColumn(Context context, Node node) {
+        JavaAnnotateTableColumnConfiguration javaAnnotateTableColumnConfiguration = new JavaAnnotateTableColumnConfiguration();
+
+        context.setJavaAnnotateTableColumnConfiguration(javaAnnotateTableColumnConfiguration);
+        Properties attributes = parseAttributes(node);
+        String type = attributes.getProperty("type"); //$NON-NLS-1$
+        String targetPackage = attributes.getProperty("targetPackage"); //$NON-NLS-1$
+        String name = attributes.getProperty("name"); //$NON-NLS-1$
+        String targetProject = attributes.getProperty("targetProject"); //$NON-NLS-1$
+        String pointPackage = attributes.getProperty("pointPackage"); //$NON-NLS-1$
+
+        javaAnnotateTableColumnConfiguration.setConfigurationType(type);
+        javaAnnotateTableColumnConfiguration.setTargetProject(targetProject);
+        javaAnnotateTableColumnConfiguration.setPointPackage(pointPackage);
+        javaAnnotateTableColumnConfiguration.setTargetPackage(targetPackage);
+        javaAnnotateTableColumnConfiguration.setName(name);
+
+        NodeList nodeList = node.getChildNodes();
+        for (int i = 0; i < nodeList.getLength(); i++) {
+            Node childNode = nodeList.item(i);
+
+            if (childNode.getNodeType() != Node.ELEMENT_NODE) {
+                continue;
+            }
+
+            if ("property".equals(childNode.getNodeName())) { //$NON-NLS-1$
+                parseProperty(javaAnnotateTableColumnConfiguration, childNode);
             }
         }
     }

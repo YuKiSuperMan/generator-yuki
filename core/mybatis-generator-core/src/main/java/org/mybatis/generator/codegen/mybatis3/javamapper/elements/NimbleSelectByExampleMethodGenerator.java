@@ -25,9 +25,17 @@ import java.util.TreeSet;
  */
 public class NimbleSelectByExampleMethodGenerator extends AbstractJavaMapperMethodGenerator{
 
+    private boolean isGeneric;
+
     public NimbleSelectByExampleMethodGenerator() {
         super();
     }
+
+    public NimbleSelectByExampleMethodGenerator(boolean isGeneric) {
+        super();
+        this.isGeneric = isGeneric;
+    }
+
 
     @Override
     public void addInterfaceElements(Interface interfaze) {
@@ -45,7 +53,11 @@ public class NimbleSelectByExampleMethodGenerator extends AbstractJavaMapperMeth
         FullyQualifiedJavaType returnType = FullyQualifiedJavaType
                 .getNewListInstance();
         FullyQualifiedJavaType listType = FullyQualifiedJavaType.getNewMapInstance();
-        returnType.addTypeArgument(listType);
+        if (!isGeneric) {
+            returnType.addTypeArgument(listType);
+        } else {
+            returnType.addTypeArgument(new FullyQualifiedJavaType("T"));
+        }
         method.addParameter(new Parameter(type, "example"));
         method.setReturnType(returnType);
         //添加自动生成注解
@@ -64,13 +76,9 @@ public class NimbleSelectByExampleMethodGenerator extends AbstractJavaMapperMeth
     }
 
     public void addDoc(Method method) {
-        FullyQualifiedJavaType mapperType = new FullyQualifiedJavaType(
-                introspectedTable.getMyBatisBizType());
         StringBuilder sb = new StringBuilder();
         method.addJavaDocLine("/**"); //$NON-NLS-1$
-        method
-                .addJavaDocLine(" * This method is create by YuKi "); //$NON-NLS-1$
-        sb.append(" * 此方法不要直接调用,请通过["+mapperType.getShortName()+"]进行调用"); //$NON-NLS-1$
+        method.addJavaDocLine(" * This method is create by YuKi "); //$NON-NLS-1$
         method.addJavaDocLine(sb.toString());
         method.addJavaDocLine(" */"); //$NON-NLS-1$
     }
