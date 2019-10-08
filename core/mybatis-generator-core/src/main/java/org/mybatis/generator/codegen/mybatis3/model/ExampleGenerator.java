@@ -802,6 +802,7 @@ public class ExampleGenerator extends AbstractJavaGenerator {
             // conditions for a field
             answer.addMethod(getSetNullMethod(introspectedColumn));
             answer.addMethod(getSetNotNullMethod(introspectedColumn));
+            answer.addMethod(getSingleAndOrLikeMethod(introspectedColumn));
             answer.addMethod(getSetEqualMethod(introspectedColumn));
             answer.addMethod(getSetNotEqualMethod(introspectedColumn));
             answer.addMethod(getSetGreaterThanMethod(introspectedColumn));
@@ -916,6 +917,38 @@ public class ExampleGenerator extends AbstractJavaGenerator {
 
         return method;
     }
+
+
+    private Method getSingleAndOrLikeMethod(IntrospectedColumn introspectedColumn) {
+
+        Method method = new Method("andOrLike");
+        method.setVisibility(JavaVisibility.PUBLIC);
+        method.addParameter(new Parameter(new FullyQualifiedJavaType("List<String>"), "columnNameList")); //$NON-NLS-1$
+        method.addParameter(new Parameter(new FullyQualifiedJavaType("String"), "value")); //$NON-NLS-1$
+        method.setReturnType(FullyQualifiedJavaType.getCriteriaInstance());
+
+        method.addBodyLine("String s = \"(\";"); //$NON-NLS-1$
+        method.addBodyLine("boolean start = true;"); //$NON-NLS-1$
+        method.addBodyLine("for (String columnName : columnNameList) {"); //$NON-NLS-1$
+        method.addBodyLine("if (!start) {"); //$NON-NLS-1$
+        method.addBodyLine("s += \" or \";"); //$NON-NLS-1$
+        method.addBodyLine("} else {"); //$NON-NLS-1$
+        method.addBodyLine("start = false;"); //$NON-NLS-1$
+        method.addBodyLine("}"); //$NON-NLS-1$
+        method.addBodyLine("s += columnName +\" like  \" + value;"); //$NON-NLS-1$
+        method.addBodyLine("}"); //$NON-NLS-1$
+        method.addBodyLine("s += \")\";"); //$NON-NLS-1$
+        method.addBodyLine("addCriterion(s);"); //$NON-NLS-1$
+        method.addBodyLine("return (Criteria) this;");
+        return method;
+    }
+
+//    method = new Method("andOrDemo"); //$NON-NLS-1$
+//        method.setVisibility(JavaVisibility.PUBLIC);
+//        method.addBodyLine("addCriterion(\"(b = \\\"\"+value+\"\\\" or c = \\\"\"+value+\"\\\")\");"); //$NON-NLS-1$
+//        method.addBodyLine("return (Criteria) this;"); //$NON-NLS-1$
+//        commentGenerator.addGeneralMethodComment(method, introspectedTable);
+//        topLevelClass.addMethod(method);
 
     /**
      * Generates methods that set between and not between conditions.

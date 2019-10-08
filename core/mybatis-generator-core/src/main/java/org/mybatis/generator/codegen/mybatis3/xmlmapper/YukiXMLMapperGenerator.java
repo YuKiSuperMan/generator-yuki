@@ -57,6 +57,7 @@ public class YukiXMLMapperGenerator extends AbstractXmlGenerator {
         addBaseColumnListElement(answer);
         addBlobColumnListElement(answer);
         addNimbleSelectByExampleElement(answer);
+//        addJoinNimbleSelectByExampleElement(answer);
         addBatchInsertElement(answer);
         addBatchUpdateElement(answer);
         return answer;
@@ -75,6 +76,13 @@ public class YukiXMLMapperGenerator extends AbstractXmlGenerator {
     protected void addNimbleSelectByExampleElement(XmlElement parentElement) {
         if (introspectedTable.getRules().generateNimbleSelectByExample()) {
             AbstractXmlElementGenerator elementGenerator = new NimbleSelectByExampleGenerator();
+            initializeAndExecuteGenerator(elementGenerator, parentElement);
+        }
+    }
+
+    protected void addJoinNimbleSelectByExampleElement(XmlElement parentElement) {
+        if (introspectedTable.getRules().generateNimbleSelectByExample()) {
+            AbstractXmlElementGenerator elementGenerator = new JoinNimbleSelectByExampleGenerator();
             initializeAndExecuteGenerator(elementGenerator, parentElement);
         }
     }

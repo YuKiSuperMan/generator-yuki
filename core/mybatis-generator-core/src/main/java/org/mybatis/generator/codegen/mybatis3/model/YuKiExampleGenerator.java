@@ -307,6 +307,31 @@ public class YuKiExampleGenerator extends AbstractJavaGenerator {
         return answer;
     }
 
+    private Method getSingleAndOrLikeMethod() {
+
+        Method method = new Method("andOrLike");
+        method.setVisibility(JavaVisibility.PUBLIC);
+        method.addParameter(new Parameter(new FullyQualifiedJavaType("List<String>"), "columnNameList")); //$NON-NLS-1$
+        method.addParameter(new Parameter(new FullyQualifiedJavaType("String"), "value")); //$NON-NLS-1$
+        method.setReturnType(FullyQualifiedJavaType.getCriteriaInstance());
+
+        method.addBodyLine("StringBuilder sb = new StringBuilder();"); //$NON-NLS-1$
+        method.addBodyLine("sb.append(\"(\");"); //$NON-NLS-1$
+        method.addBodyLine("boolean start = true;"); //$NON-NLS-1$
+        method.addBodyLine("for (String columnName : columnNameList) {"); //$NON-NLS-1$
+        method.addBodyLine("if (!start) {"); //$NON-NLS-1$
+        method.addBodyLine("sb.append(\" or \");"); //$NON-NLS-1$
+        method.addBodyLine("} else {"); //$NON-NLS-1$
+        method.addBodyLine("start = false;"); //$NON-NLS-1$
+        method.addBodyLine("}"); //$NON-NLS-1$
+        method.addBodyLine("sb.append(columnName +\" like \\'\" + value + \"\\'\");"); //$NON-NLS-1$
+        method.addBodyLine("}"); //$NON-NLS-1$
+        method.addBodyLine("sb.append(\")\");"); //$NON-NLS-1$
+        method.addBodyLine("addCriterion(sb.toString());"); //$NON-NLS-1$
+        method.addBodyLine("return (Criteria) this;");
+        return method;
+    }
+
     private InnerClass getCriterionInnerClass() {
         InnerClass answer = new InnerClass(new FullyQualifiedJavaType(
                 "Criterion")); //$NON-NLS-1$
@@ -799,7 +824,7 @@ public class YuKiExampleGenerator extends AbstractJavaGenerator {
                     .addBodyLine("addCriterion(condition, new java.sql.Time(value1.getTime()), new java.sql.Time(value2.getTime()), property);"); //$NON-NLS-1$
             answer.addMethod(method);
         }
-
+        answer.addMethod(getSingleAndOrLikeMethod());
         for (IntrospectedColumn introspectedColumn : introspectedTable
                 .getNonBLOBColumns()) {
             topLevelClass.addImportedType(introspectedColumn
