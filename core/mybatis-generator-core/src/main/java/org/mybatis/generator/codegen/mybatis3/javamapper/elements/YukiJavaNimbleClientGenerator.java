@@ -73,7 +73,8 @@ public class YukiJavaNimbleClientGenerator extends AbstractJavaClientGenerator {
 
         addNimbleSelectByExampleMethod(interfaze);
 //        addJoinNimbleSelectByExampleMethod(interfaze);
-
+        addBatchInsertByExampleMethodGenerator(interfaze);
+        addBatchUpdateByExampleMethodGenerator(interfaze);
         List<CompilationUnit> answer = new ArrayList<>();
         if (context.getPlugins().clientGenerated(interfaze, introspectedTable)) {
             answer.add(interfaze);
@@ -92,6 +93,17 @@ public class YukiJavaNimbleClientGenerator extends AbstractJavaClientGenerator {
             AbstractJavaMapperMethodGenerator methodGenerator = new NimbleSelectByExampleMethodGenerator(true);
             initializeAndExecuteGenerator(methodGenerator, interfaze);
         }
+    }
+
+    protected void addBatchInsertByExampleMethodGenerator(Interface interfaze) {
+        AbstractJavaMapperMethodGenerator methodGenerator = new BatchInsertByExampleMethodGenerator();
+        initializeAndExecuteGenerator(methodGenerator, interfaze);
+    }
+
+
+    protected void addBatchUpdateByExampleMethodGenerator(Interface interfaze) {
+        AbstractJavaMapperMethodGenerator methodGenerator = new BatchUpdateByExampleMethodGenerator();
+        initializeAndExecuteGenerator(methodGenerator, interfaze);
     }
 
     protected void addJoinNimbleSelectByExampleMethod(Interface interfaze) {

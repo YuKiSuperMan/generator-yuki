@@ -47,7 +47,7 @@ public class BatchInsertByExampleGenerator extends
             answer.addElement(new TextElement(sb.toString()));
         }
         answer.addElement(getBaseColumnListElement());
-        answer.addElement(new TextElement(") "));
+        answer.addElement(new TextElement(") VALUES"));
         answer.addElement(getBaseBatchInsertElement()); //$NON-NLS-1$
 
         if (context.getPlugins().sqlMapSelectAllElementGenerated(
