@@ -802,7 +802,7 @@ public class ExampleGenerator extends AbstractJavaGenerator {
             // conditions for a field
             answer.addMethod(getSetNullMethod(introspectedColumn));
             answer.addMethod(getSetNotNullMethod(introspectedColumn));
-            answer.addMethod(getSingleAndOrLikeMethod(introspectedColumn));
+//            answer.addMethod(getSingleAndOrLikeMethod(introspectedColumn));
             answer.addMethod(getSetEqualMethod(introspectedColumn));
             answer.addMethod(getSetNotEqualMethod(introspectedColumn));
             answer.addMethod(getSetGreaterThanMethod(introspectedColumn));

@@ -49,7 +49,7 @@
       <property name="enableSubPackages" value="false"/>
     </javaBizGenerator>
 
-    <javaClientGenerator type="LXYMAPPER" targetPackage="mbg.test.mb3.generated.flat.mapper"  targetProject="MAVEN">
+    <javaClientGenerator type="XMLMAPPER" targetPackage="mbg.test.mb3.generated.flat.mapper"  targetProject="MAVEN">
       <property name="enableSubPackages" value="true" />
     </javaClientGenerator>
 

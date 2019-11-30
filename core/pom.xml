@@ -339,7 +339,7 @@
                       <pluginExecutionFilter>
                         <groupId>org.mybatis.generator</groupId>
                         <artifactId>mybatis-generator-maven-plugin</artifactId>
-                        <versionRange>[1.4.0-SNAPSHOT,)</versionRange>
+                        <versionRange>[1.4.0-yuki,)</versionRange>
                         <goals>
                           <goal>generate</goal>
                         </goals>
